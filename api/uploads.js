@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     if (!file) throw new Error('No image file provided (field "image")');
 
     // ---- Determine folder ----
-    const now = new Date();
+    const now = new Date(file.lastModified);
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
