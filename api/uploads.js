@@ -3,7 +3,7 @@ import { IncomingForm } from 'formidable';
 import fs from 'fs';
 import crypto from 'crypto';
 
-const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
+const BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_Gk9GPvdVvphlILt6_XVlPuoRJdeLPvS73Roqhx3c5KCIfye';
 
 export const config = { api: { bodyParser: false } };
 
@@ -32,25 +32,25 @@ export default async function handler(req, res) {
     if (!file) throw new Error('No image file provided (field "image")');
 
     // ---- Determine folder ----
-    const now = new Date(file.lastModified);
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const dateFolder = `${year}/${month}/${day}/`;
+    // ─── REMOVED: dateFolder computation ───────────────────────────
+    // const now = new Date(file.lastModified);
+    // const year = now.getFullYear();
+    // const month = String(now.getMonth() + 1).padStart(2, '0');
+    // const day = String(now.getDate()).padStart(2, '0');
+    // const dateFolder = `${year}/${month}/${day}/`;
+    // ─────────────────────────────────────────────────────────────────
 
     let folder = '';
-    const customFolder = req.query.folder; // full override: ?folder=avatars
-    const category = req.query.category;   // category: ?category=screenshots
+    const customFolder = req.query.folder;
+    const category = req.query.category;
 
     if (customFolder) {
-      // Full override – ignore date and category
       folder = customFolder + '/';
     } else if (category) {
-      // Category + date: uploads/[category]/YYYY/MM/DD/
-      folder = `uploads/${category}/${dateFolder}`;
+      // Use category as‑is – client already includes any date structure
+      folder = `uploads/${category}/`;
     } else {
-      // Default: uploads/YYYY/MM/DD/
-      folder = `uploads/${dateFolder}`;
+      folder = 'uploads/';
     }
 
     // ---- Filename ----
