@@ -4,6 +4,11 @@ import { list, del } from '@vercel/blob';
 const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 const BLOB_STORE_ID = process.env.BLOB_STORE_ID || '';
 
+// Add validation to help debug
+if (!BLOB_READ_WRITE_TOKEN) {
+  console.error('Missing BLOB_READ_WRITE_TOKEN environment variable');
+}
+
 export default async function handler(req, res) {
   // Enable CORS for local testing (optional)
   res.setHeader('Access-Control-Allow-Origin', '*');
