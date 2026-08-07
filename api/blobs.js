@@ -1,22 +1,24 @@
 import { list, del } from '@vercel/blob';
 
-// 🔒 HARDCODED TOKEN – replace with your actual token
 const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 const BLOB_STORE_ID = process.env.BLOB_STORE_ID || '';
-
-// Add validation to help debug
-if (!BLOB_READ_WRITE_TOKEN) {
-  console.error('Missing BLOB_READ_WRITE_TOKEN environment variable');
-}
+const API_SECRET_KEY = process.env.API_SECRET_KEY; // New secret key
 
 export default async function handler(req, res) {
-  // Enable CORS for local testing (optional)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+
+  // ---------- AUTHENTICATION CHECK ----------
+  const authHeader = req.headers.authorization || '';
+  const clientKey = authHeader.replace('Bearer ', '');
+
+  if (!clientKey || clientKey !== API_SECRET_KEY) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid API key' });
   }
 
   // ---------- GET: List all blobs ----------
@@ -25,7 +27,7 @@ export default async function handler(req, res) {
       const result = await list({ token: BLOB_READ_WRITE_TOKEN });
       return res.status(200).json({
         blobs: result.blobs,
-        storeId: BLOB_STORE_ID, // sent to the frontend for display
+        storeId: BLOB_STORE_ID,
       });
     } catch (error) {
       console.error('List error:', error);
