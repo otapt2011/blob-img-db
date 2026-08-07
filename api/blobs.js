@@ -2,7 +2,7 @@ import { list, del } from '@vercel/blob';
 
 const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 const BLOB_STORE_ID = process.env.BLOB_STORE_ID || '';
-const API_SECRET_KEY = process.env.API_SECRET_KEY; // New secret key
+const API_SECRET_KEY = process.env.API_SECRET_KEY;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -17,20 +17,8 @@ export default async function handler(req, res) {
   const authHeader = req.headers.authorization || '';
   const clientKey = authHeader.replace('Bearer ', '');
 
-  console.log('Received key:', clientKey);
-  console.log('Expected key:', API_SECRET_KEY);
-  console.log('Keys match:', clientKey === API_SECRET_KEY);
-
   if (!clientKey || clientKey !== API_SECRET_KEY) {
-    // 🔍 Debug info included – REMOVE after fixing
-    return res.status(401).json({
-      error: 'Unauthorized: Invalid API key',
-      debug: {
-        receivedKey: clientKey,
-        expectedKey: API_SECRET_KEY,
-        match: clientKey === API_SECRET_KEY,
-      },
-    });
+    return res.status(401).json({ error: 'Unauthorized: Invalid API key' });
   }
 
   // ---------- GET: List all blobs ----------
