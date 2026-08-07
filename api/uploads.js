@@ -4,17 +4,26 @@ import fs from 'fs';
 import crypto from 'crypto';
 
 const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
+const API_SECRET_KEY = process.env.API_SECRET_KEY; // New secret key
 
 export const config = { api: { bodyParser: false } };
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // ---------- AUTHENTICATION CHECK ----------
+  const authHeader = req.headers.authorization || '';
+  const clientKey = authHeader.replace('Bearer ', '');
+
+  if (!clientKey || clientKey !== API_SECRET_KEY) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid API key' });
   }
 
   const form = new IncomingForm();
@@ -32,14 +41,6 @@ export default async function handler(req, res) {
     if (!file) throw new Error('No image file provided (field "image")');
 
     // ---- Determine folder ----
-    // ─── REMOVED: dateFolder computation ───────────────────────────
-    // const now = new Date(file.lastModified);
-    // const year = now.getFullYear();
-    // const month = String(now.getMonth() + 1).padStart(2, '0');
-    // const day = String(now.getDate()).padStart(2, '0');
-    // const dateFolder = `${year}/${month}/${day}/`;
-    // ─────────────────────────────────────────────────────────────────
-
     let folder = '';
     const customFolder = req.query.folder;
     const category = req.query.category;
@@ -47,7 +48,6 @@ export default async function handler(req, res) {
     if (customFolder) {
       folder = customFolder + '/';
     } else if (category) {
-      // Use category as‑is – client already includes any date structure
       folder = `uploads/${category}/`;
     } else {
       folder = 'uploads/';
