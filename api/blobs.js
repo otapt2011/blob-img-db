@@ -18,11 +18,19 @@ export default async function handler(req, res) {
   const clientKey = authHeader.replace('Bearer ', '');
 
   console.log('Received key:', clientKey);
-console.log('Expected key:', API_SECRET_KEY);
-console.log('Keys match:', clientKey === API_SECRET_KEY);
-  
+  console.log('Expected key:', API_SECRET_KEY);
+  console.log('Keys match:', clientKey === API_SECRET_KEY);
+
   if (!clientKey || clientKey !== API_SECRET_KEY) {
-    return res.status(401).json({ error: 'Unauthorized: Invalid API key' });
+    // 🔍 Debug info included – REMOVE after fixing
+    return res.status(401).json({
+      error: 'Unauthorized: Invalid API key',
+      debug: {
+        receivedKey: clientKey,
+        expectedKey: API_SECRET_KEY,
+        match: clientKey === API_SECRET_KEY,
+      },
+    });
   }
 
   // ---------- GET: List all blobs ----------
