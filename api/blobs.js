@@ -26,16 +26,40 @@ export default async function handler(req, res) {
     try {
       const result = await list({ token: BLOB_READ_WRITE_TOKEN });
 
-      // ─── NEW: Map each blob to include `lastModified` from metadata ───
-      const blobsWithMeta = result.blobs.map(blob => ({
-        ...blob, // keep all original fields (url, pathname, size, uploadedAt, etc.)
-        lastModified: blob.metadata?.lastModified
-          ? Number(blob.metadata.lastModified)   // convert string to number
-          : blob.uploadedAt,                     // fallback for old images
-      }));
+      // Map each blob to add a `lastModified` field
+      const blobsWithMeta = result.blobs.map(blob => {
+        let lastModified = blob.uploadedAt; // fallback: server upload time
+
+        // 1. Prefer stored metadata (for new uploads)
+        if (blob.metadata?.lastModified) {
+          lastModified = Number(blob.metadata.lastModified);
+        } else {
+          // 2. Try to parse date from folder structure for old uploads
+          //    Expected path: .../YYYY/MM/DD/filename.ext
+          const parts = blob.pathname.split('/').filter(p => p.length > 0);
+          if (parts.length >= 4) {
+            const year = parseInt(parts[parts.length - 4], 10);
+            const month = parseInt(parts[parts.length - 3], 10);
+            const day = parseInt(parts[parts.length - 2], 10);
+            // Validate numbers are within plausible ranges
+            if (!isNaN(year) && !isNaN(month) && !isNaN(day) &&
+                month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+              const parsed = new Date(year, month - 1, day).getTime();
+              if (!isNaN(parsed)) {
+                lastModified = parsed;
+              }
+            }
+          }
+        }
+
+        return {
+          ...blob,          // keep all original fields (url, pathname, size, uploadedAt, metadata, etc.)
+          lastModified,     // add our computed field
+        };
+      });
 
       return res.status(200).json({
-        blobs: blobsWithMeta,   // ← now includes `lastModified`
+        blobs: blobsWithMeta,
         storeId: BLOB_STORE_ID,
       });
     } catch (error) {
