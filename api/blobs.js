@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // ---------- AUTHENTICATION CHECK ----------
+  // ---------- AUTHENTICATION ----------
   const authHeader = req.headers.authorization || '';
   const clientKey = authHeader.replace('Bearer ', '');
 
@@ -25,8 +25,17 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const result = await list({ token: BLOB_READ_WRITE_TOKEN });
+
+      // ─── NEW: Map each blob to include `lastModified` from metadata ───
+      const blobsWithMeta = result.blobs.map(blob => ({
+        ...blob, // keep all original fields (url, pathname, size, uploadedAt, etc.)
+        lastModified: blob.metadata?.lastModified
+          ? Number(blob.metadata.lastModified)   // convert string to number
+          : blob.uploadedAt,                     // fallback for old images
+      }));
+
       return res.status(200).json({
-        blobs: result.blobs,
+        blobs: blobsWithMeta,   // ← now includes `lastModified`
         storeId: BLOB_STORE_ID,
       });
     } catch (error) {
