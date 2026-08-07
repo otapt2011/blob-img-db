@@ -67,6 +67,9 @@ export default async function handler(req, res) {
       contentType: file.mimetype || 'application/octet-stream',
       token: BLOB_READ_WRITE_TOKEN,
       addRandomSuffix: false,
+  metadata: {
+    lastModified: String(lastModified),
+  },
     });
 
     return res.status(200).json(blob);
