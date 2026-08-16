@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     let file = files.image;
     if (Array.isArray(file)) file = file[0];
     if (!file) throw new Error('No image file provided (field "image")');
-
+const lastModified = req.query.lastModified || fields.lastModified || Date.now();
     // ---- Determine folder ----
     let folder = '';
     const customFolder = req.query.folder;
