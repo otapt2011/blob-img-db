@@ -1,4 +1,4 @@
-import { generateClientUploadUrl } from '@vercel/blob/client';
+import { generateClientUploadUrl } from '@vercel/blob';
 
 const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 const API_SECRET_KEY = process.env.API_SECRET_KEY;
