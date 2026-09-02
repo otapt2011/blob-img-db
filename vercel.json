@@ -1,7 +1,4 @@
 {
-  "env": {
-    "ENCRYPTED_JFR_KEY": "@encrypted_jfr_key"
-  },
   "functions": {
     "api/*": {
       "maxDuration": 10
